@@ -1,21 +1,24 @@
 import os.path
 from os import read
 
-def readFile(fullDirFile):
+def readFile(fullDirFile, isText=False):
   fileName = fullDirFile[fullDirFile.rindex('/')+1:]
-  markFileName = fileName + '|~FCU~|'
   f = open(fullDirFile, 'rb')
-  fbyte = bytes(markFileName, 'utf-8') + f.read()
+  fbyte = f.read()
   f.close()
+  if not isText:
+    fbyte = bytes(fileName + '|~FCU~|', 'utf-8') + fbyte
+  fstr = str(fbyte)
+  fstr = fstr[2:len(fstr)-1]
 
-  return fileName, fbyte
+  return fileName, fstr
 
-def writeFile(fbyte):
+def writeFile(fbyte, file_name=None):
   if (str(fbyte).find('|~FCU~|') == -1):
-    fileName = 'fileText.txt'
+    fileName = file_name if file_name is not None else 'fileResultText.txt'
     byteFile = fbyte
   else:
-    fileName = fbyte[:str(fbyte).find('|~FCU~|')-2].decode('utf-8')
+    fileName = fbyte[:str(fbyte).find('|~FCU~|')-2].decode()
     byteFile = fbyte[str(fbyte).find('|~FCU~|')+5:]
 
   check = True

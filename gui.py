@@ -42,17 +42,142 @@ Button(home, text='Modified RC4', font=('Calibri', 12, 'bold'), width=14, comman
 Button(home, text='Steganografi', font=('Calibri', 12, 'bold'), width=14, command=steg_win, bg='RoyalBlue1').place(x=50, y=95)
 
 # ------------------------- Windows RC4 ------------------------- #
+# Method
+def setBtnProcess():
+  if (rc4Mode.get() == 'encrypt'):
+    rc4ProcessBtn.config(text='Encrypt Now!')
+  else:
+    rc4ProcessBtn.config(text='Decrypt Now!')
+
+def setRc4FileBtn():
+  if (rc4ImportType.get()):
+    rc4FileBtn.config(state=NORMAL)
+    inputRc4.delete('1.0', END)
+    inputRc4.config(state=DISABLED)
+  else:
+    labelRc4File.config(text='')
+    rc4FileBtn.config(state=DISABLED)
+    inputRc4.config(state=NORMAL)
+
+def importRc4File():
+  try:
+    fullDirFile = filedialog.askopenfile().name
+    if fullDirFile[fullDirFile.rindex('.')+1:] == 'txt':
+      isInputFileRc4Text.set(True)
+      fileName, fbyte = readFile(fullDirFile, True)
+      inputRc4.config(state=NORMAL)
+      inputRc4.insert(tkinter.END, fbyte.decode('utf-8'))
+      inputRc4.config(state=DISABLED)
+    else:
+      fileName, fbyte = readFile(fullDirFile)
+      rc4FileByte.set(fbyte)
+    labelRc4File.config(text=fileName)
+    tkinter.messagebox.showinfo('Success', 'Success import: ' + fileName)
+  except:
+    tkinter.messagebox.showinfo('Error', 'Something went wrong when import file')
+
+def copyOutputRc4():
+  rc4.clipboard_clear()
+  rc4.clipboard_append(outputRc4.get('1.0', 'end-1c'))
+  rc4.update()
+
+def saveOutputRc4():
+  try:
+    fbyte = bytes(outputRc4.get('1.0', 'end-1c'), 'utf-8')
+    fileName = writeFile(fbyte)
+    tkinter.messagebox.showinfo('Success', 'Success export result to: '+ fileName)
+  except:
+    tkinter.messagebox.showinfo('Error', 'Error when export result to file')
+
+def rc4Reset():
+  rc4Mode.set('encrypt')
+  setBtnProcess()
+  rc4ImportType.set(False)
+  setRc4FileBtn()
+  rc4FileByte.set('')
+  keyRc4.delete('1.0', END)
+  inputRc4.delete('1.0', END)
+  outputRc4.config(state=NORMAL)
+  outputRc4.delete('1.0', END)
+  outputRc4.config(state=DISABLED)
+  isInputFileRc4Text.set(False)
+
+def processRc4():
+  if keyRc4.get('1.0', 'end-1c') == '':
+    tkinter.messagebox.showinfo('Error', 'Key not available')
+  elif rc4FileByte.get() == '' and rc4ImportType.get() and not isInputFileRc4Text.get():
+    tkinter.messagebox.showinfo('Error', 'Input file not available')
+  elif inputRc4.get('1.0', 'end-1c') == '' and (not rc4ImportType.get() or isInputFileRc4Text.get()):
+    tkinter.messagebox.showinfo('Error', 'Input not available')
+  else:
+    # try:
+      if rc4ImportType.get() and not isInputFileRc4Text.get():
+        # result = methodRc4(rc4Mode.get(), keyRc4.get('1.0', 'end-1c'), rc4FileByte.get())
+        # fileName = writeFile(bytes(rc4FileByte.get(), 'utf-8'), 'test.bin')
+        # tkinter.messagebox.showinfo('Success', 'Success export result to: '+ fileName)
+        print(rc4Mode.get() + 'using file')
+      else:
+        # result = methodRc4(rc4Mode.get(), keyRc4.get('1.0', 'end-1c'), inputRc4.get('1.0', 'end-1c'))
+        # result = keyRc4.get('1.0', 'end-1c') + '|~FCU~|' + inputRc4.get('1.0', 'end-1c')
+        # outputRc4.config(state=NORMAL)
+        # outputRc4.insert(tkinter.END, result)
+        # outputRc4.config(state=DISABLED)
+        # tkinter.messagebox.showinfo('Success', 'Success Process RC4 Algorithm')
+        print(rc4Mode.get() + 'using input box')
+      isInputFileRc4Text.set(False)
+    # except:
+    #   tkinter.messagebox.showinfo('Error', 'Something went wrong when processing RC4 Algorithm')
+
+#GUI
 rc4 = Toplevel(home)
 rc4.title('Modified RC4')
-rc4.geometry('200x150')
+rc4.geometry('360x580')
 rc4.geometry("+{}+{}".format(
-  int((rc4.winfo_screenwidth()-200) / 2), int((rc4.winfo_screenheight()-150) / 2)
+  int((rc4.winfo_screenwidth()-360) / 2), int((rc4.winfo_screenheight()-580) / 2) - 20
 ))
 rc4.protocol("WM_DELETE_WINDOW", disable_event)
 rc4.resizable(0,0)
 
+rc4FileByte = StringVar(rc4)
+isInputFileRc4Text = BooleanVar(rc4, False)
+
 Button(rc4, text='Home', font=('Calibri', 12, 'bold'), width=7, command=home_win, bg='RoyalBlue1').place(x=10, y=10)
-Button(rc4, text='Close', font=('Calibri', 12, 'bold'), width=7, command=close_win, bg='red2').place(x=90, y=10)
+Button(rc4, text='Close', font=('Calibri', 12, 'bold'), width=7, command=close_win, bg='red2').place(x=280, y=10)
+
+Label(rc4, text='RC4 Mode:').place(x=10, y=60)
+rc4Mode = StringVar(rc4, 'encrypt')
+Radiobutton(rc4, text='Encrypt', variable=rc4Mode, value='encrypt', command=setBtnProcess).place(x=75, y=60)
+Radiobutton(rc4, text='Decrypt', variable=rc4Mode, value='decrypt', command=setBtnProcess).place(x=170, y=60)
+
+Label(rc4, text='Import File:').place(x=10, y=90)
+rc4ImportType = BooleanVar(rc4, False)
+Radiobutton(rc4, text='Without File', variable=rc4ImportType, value=False, command=setRc4FileBtn).place(x=75, y=90)
+Radiobutton(rc4, text='Using File', variable=rc4ImportType, value=True, command=setRc4FileBtn).place(x=170, y=90)
+
+rc4FileBtn = Button(rc4, text='Import', command=importRc4File, bg='grey85', width=8, state=DISABLED)
+rc4FileBtn.place(x=10, y=110)
+labelRc4File = Label(rc4, font=('Calibri', 10, 'underline'), fg='blue')
+labelRc4File.place(x=80, y=110)
+
+Label(rc4, text='Key:').place(x=10, y=140)
+keyRc4 = ScrolledText(rc4, height=1, width=40)
+keyRc4.place(x=10, y=160)
+
+Label(rc4, text='Input:').place(x=10, y=220)
+inputRc4 = ScrolledText(rc4, height=5, width=40)
+inputRc4.place(x=10, y=240)
+
+Label(rc4, text='Output:').place(x=10, y=335)
+outputRc4 = ScrolledText(rc4, height=5, width=40, state=DISABLED)
+outputRc4.place(x=10, y=355)
+
+Button(rc4, text='Copy', command=copyOutputRc4, bg='grey85', width=7).place(x=10, y=440)
+Button(rc4, text='Save', command=saveOutputRc4, bg='grey85', width=7).place(x=290, y=440)
+
+rc4ProcessBtn = Button(rc4, text='Encrypt Now!', font=('Calibri', 12, 'bold'), command=processRc4, bg='RoyalBlue1', width=20)
+rc4ProcessBtn.place(x=95, y=480)
+
+Button(rc4, text='Reset', font=('Calibri', 12, 'bold'), command=rc4Reset, bg='red2', width=7).place(x=155, y=525)
 
 rc4.withdraw()
 
@@ -78,15 +203,18 @@ def importMediaSteg():
     tkinter.messagebox.showinfo('Error', 'Something went wrong when import file')
 
 def showStegActType():
-  if (stegAction.get() == 'hide'):
+  if stegAction.get() == 'hide':
     stegSeqRad.config(state=NORMAL)
     stegRandRad.config(state=NORMAL)
+    importStegMsgBtn.config(state=NORMAL)
     stegActType.set('seq')
     stegProcessBtn.config(text='Hide Message Now!')
   else:
     stegActType.set('X')
     stegSeqRad.config(state=DISABLED)
     stegRandRad.config(state=DISABLED)
+    importStegMsgBtn.config(state=DISABLED)
+    labelStegMsg.config(text='')
     stegProcessBtn.config(text='Extract Message Now!')
 
 def importStegMsg():
@@ -113,7 +241,7 @@ def processSteg():
     tkinter.messagebox.showinfo('Error', 'Key is empty')
   elif stegMedia.get() == '':
     tkinter.messagebox.showinfo('Error', 'Multimedia file is not available')
-  elif stegMsg.get() == '':
+  elif stegAction.get() == 'hide' and stegMsg.get() == '':
     tkinter.messagebox.showinfo('Error', 'Message file is not available')
   else:
     try:
@@ -122,10 +250,10 @@ def processSteg():
         print('encrypt message')
       if stegMediaType.get() == 'image':
         # result = methodStegImage(stegAction.get(), stegMedia.get(), stegMsg.get())
-        tkinter.messagebox.showinfo('Success', 'Success Pocess Steganografi in Image')
+        tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Image')
       else:
         # result = methodStegAudio(stegAction.get(), stegMedia.get(), stegMsg.get())
-        tkinter.messagebox.showinfo('Success', 'Success Pocess Steganografi in Audio')
+        tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Audio')
       if stegEncryptMode.get() and stegAction.get() == 'extract':
         # decrypt result
         print('decrypt result')
@@ -186,7 +314,8 @@ stegRandRad.place(x=180, y=240)
 Label(steg, text='Message File:').place(x=10, y=280)
 labelStegMsg = Label(steg, font=('Calibri', 10, 'underline'), fg='blue')
 labelStegMsg.place(x=85, y=280)
-Button(steg, text='Import File', command=importStegMsg, bg='grey85', width=8).place(x=10, y=300)
+importStegMsgBtn = Button(steg, text='Import File', command=importStegMsg, bg='grey85', width=8)
+importStegMsgBtn.place(x=10, y=300)
 
 stegProcessBtn = Button(steg, text='Hide Message Now!', font=('Calibri', 12, 'bold'), command=processSteg, bg='RoyalBlue1', width=20)
 stegProcessBtn.place(x=80, y=350)
