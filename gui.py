@@ -3,6 +3,7 @@ from tkinter import *
 import tkinter.messagebox
 from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
+from fileManagement import *
 
 def home_win():
   home.deiconify()
@@ -56,8 +57,6 @@ Button(rc4, text='Close', font=('Calibri', 12, 'bold'), width=7, command=close_w
 rc4.withdraw()
 
 # ------------------------- Windows Steganografi ------------------------- #
-stegMedia = ''
-stegMsg = ''
 # Method
 def showStegKey():
   if (stegEncryptMode.get()):
@@ -92,11 +91,9 @@ def showStegActType():
 
 def importStegMsg():
   try:
-    fullFileName = filedialog.askopenfile().name
-    fileName = fullFileName[fullFileName.rindex('/')+1:]
-    f = open(fullFileName, 'rb')
-    stegMsg.set(f.read())
-    f.close()
+    fullDirFile = filedialog.askopenfile().name
+    fileName, fbyte = readFile(fullDirFile)
+    stegMsg.set(fbyte)
     labelStegMsg.config(text=fileName)
     tkinter.messagebox.showinfo('Success', 'Success import: ' + fileName)
   except:
@@ -112,14 +109,32 @@ def stegReset():
   stegMsg.set('')
 
 def processSteg():
-  if stegEncryptMode and keySteg == '':
+  if stegEncryptMode.get() and keySteg.get('1.0', 'end-1c') == '':
     tkinter.messagebox.showinfo('Error', 'Key is empty')
   elif stegMedia.get() == '':
     tkinter.messagebox.showinfo('Error', 'Multimedia file is not available')
   elif stegMsg.get() == '':
     tkinter.messagebox.showinfo('Error', 'Message file is not available')
   else:
-    tkinter.messagebox.showinfo('Success', 'Success Pocess Steganografi')
+    try:
+      if stegEncryptMode.get() and stegAction.get() == 'hide':
+        # encrypt message
+        print('encrypt message')
+      if stegMediaType.get() == 'image':
+        # result = methodStegImage(stegAction.get(), stegMedia.get(), stegMsg.get())
+        tkinter.messagebox.showinfo('Success', 'Success Pocess Steganografi in Image')
+      else:
+        # result = methodStegAudio(stegAction.get(), stegMedia.get(), stegMsg.get())
+        tkinter.messagebox.showinfo('Success', 'Success Pocess Steganografi in Audio')
+      if stegEncryptMode.get() and stegAction.get() == 'extract':
+        # decrypt result
+        print('decrypt result')
+      # if stegAction.get() == 'hide': # Export File
+      #   result = bytes('aku anak Indonesia', 'utf-8')
+      #   fileName = writeFile(result)
+      #   tkinter.messagebox.showinfo('Success', 'Success export result to: '+ fileName)
+    except:
+      tkinter.messagebox.showinfo('Error', 'Something went wrong when processing steganografi')
 
 # GUI
 steg = Toplevel(home)
