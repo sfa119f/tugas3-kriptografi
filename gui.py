@@ -125,7 +125,7 @@ def processRc4():
         # result = methodRc4(rc4Mode.get(), keyRc4.get('1.0', 'end-1c'), rc4FileByte.get())
         # fileName = writeFile(bytes(rc4FileByte.get(), 'utf-8'), 'test.bin')
         # tkinter.messagebox.showinfo('Success', 'Success export result to: '+ fileName)
-        tkinter.messagebox.showinfo('Error', 'Process has not been implemented')
+        tkinter.messagebox.showinfo('Error', 'Encrypt/decrypt using binary files has not been implemented')
         saveBtnRc4.config(state=DISABLED)
       else:
         result = methodRc4(keyRc4.get('1.0', 'end-1c'), inputRc4.get('1.0', 'end-1c'))
