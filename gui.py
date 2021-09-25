@@ -4,6 +4,7 @@ import tkinter.messagebox
 from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
 from fileManagement import *
+from rc4Cipher import methodRc4
 
 def home_win():
   home.deiconify()
@@ -43,55 +44,61 @@ Button(home, text='Steganografi', font=('Calibri', 12, 'bold'), width=14, comman
 
 # ------------------------- Windows RC4 ------------------------- #
 # Method
-def setBtnProcess():
-  if (rc4Mode.get() == 'encrypt'):
-    rc4ProcessBtn.config(text='Encrypt Now!')
-  else:
-    rc4ProcessBtn.config(text='Decrypt Now!')
-
 def setRc4FileBtn():
   if (rc4ImportType.get()):
     rc4FileBtn.config(state=NORMAL)
     inputRc4.delete('1.0', END)
     inputRc4.config(state=DISABLED)
+    outputRc4.config(state=NORMAL)
+    outputRc4.delete('1.0', END)
+    outputRc4.config(state=DISABLED)
+    saveBtnRc4.config(state=DISABLED)
   else:
     labelRc4File.config(text='')
     rc4FileBtn.config(state=DISABLED)
     inputRc4.config(state=NORMAL)
+    saveBtnRc4.config(state=NORMAL)
 
 def importRc4File():
   try:
     fullDirFile = filedialog.askopenfile().name
     if fullDirFile[fullDirFile.rindex('.')+1:] == 'txt':
       isInputFileRc4Text.set(True)
-      fileName, fbyte = readFile(fullDirFile, True)
+      fileName, fstr = readFile(fullDirFile, True)
       inputRc4.config(state=NORMAL)
-      inputRc4.insert(tkinter.END, fbyte.decode('utf-8'))
+      inputRc4.insert(tkinter.END, fstr)
       inputRc4.config(state=DISABLED)
     else:
       fileName, fbyte = readFile(fullDirFile)
       rc4FileByte.set(fbyte)
     labelRc4File.config(text=fileName)
     tkinter.messagebox.showinfo('Success', 'Success import: ' + fileName)
+    if keyRc4.get('1.0', 'end-1c') != '':
+      processRc4()
   except:
     tkinter.messagebox.showinfo('Error', 'Something went wrong when import file')
 
 def copyOutputRc4():
-  rc4.clipboard_clear()
-  rc4.clipboard_append(outputRc4.get('1.0', 'end-1c'))
-  rc4.update()
+  try:
+    if outputRc4.get('1.0', 'end-1c') == '':
+      raise Exception()
+    rc4.clipboard_clear()
+    rc4.clipboard_append(outputRc4.get('1.0', 'end-1c'))
+    rc4.update()
+    tkinter.messagebox.showinfo('Success', 'Copied to clipboard')
+  except:
+    tkinter.messagebox.showinfo('Error', 'No value is copied')
 
 def saveOutputRc4():
   try:
-    fbyte = bytes(outputRc4.get('1.0', 'end-1c'), 'utf-8')
+    res = "Input:\n" + inputRc4.get('1.0', 'end-1c') + '\nOutput:\n' + outputRc4.get('1.0', 'end-1c')
+    fbyte = bytes(res, 'utf-8')
     fileName = writeFile(fbyte)
     tkinter.messagebox.showinfo('Success', 'Success export result to: '+ fileName)
   except:
     tkinter.messagebox.showinfo('Error', 'Error when export result to file')
 
 def rc4Reset():
-  rc4Mode.set('encrypt')
-  setBtnProcess()
   rc4ImportType.set(False)
   setRc4FileBtn()
   rc4FileByte.set('')
@@ -103,6 +110,9 @@ def rc4Reset():
   isInputFileRc4Text.set(False)
 
 def processRc4():
+  outputRc4.config(state=NORMAL)
+  outputRc4.delete('1.0', END)
+  outputRc4.config(state=DISABLED)
   if keyRc4.get('1.0', 'end-1c') == '':
     tkinter.messagebox.showinfo('Error', 'Key not available')
   elif rc4FileByte.get() == '' and rc4ImportType.get() and not isInputFileRc4Text.get():
@@ -110,23 +120,23 @@ def processRc4():
   elif inputRc4.get('1.0', 'end-1c') == '' and (not rc4ImportType.get() or isInputFileRc4Text.get()):
     tkinter.messagebox.showinfo('Error', 'Input not available')
   else:
-    # try:
+    try:
       if rc4ImportType.get() and not isInputFileRc4Text.get():
         # result = methodRc4(rc4Mode.get(), keyRc4.get('1.0', 'end-1c'), rc4FileByte.get())
         # fileName = writeFile(bytes(rc4FileByte.get(), 'utf-8'), 'test.bin')
         # tkinter.messagebox.showinfo('Success', 'Success export result to: '+ fileName)
-        print(rc4Mode.get() + 'using file')
+        tkinter.messagebox.showinfo('Error', 'Process has not been implemented')
+        saveBtnRc4.config(state=DISABLED)
       else:
-        # result = methodRc4(rc4Mode.get(), keyRc4.get('1.0', 'end-1c'), inputRc4.get('1.0', 'end-1c'))
-        # result = keyRc4.get('1.0', 'end-1c') + '|~FCU~|' + inputRc4.get('1.0', 'end-1c')
-        # outputRc4.config(state=NORMAL)
-        # outputRc4.insert(tkinter.END, result)
-        # outputRc4.config(state=DISABLED)
-        # tkinter.messagebox.showinfo('Success', 'Success Process RC4 Algorithm')
-        print(rc4Mode.get() + 'using input box')
+        result = methodRc4(keyRc4.get('1.0', 'end-1c'), inputRc4.get('1.0', 'end-1c'))
+        outputRc4.config(state=NORMAL)
+        outputRc4.insert(tkinter.END, result)
+        outputRc4.config(state=DISABLED)
+        tkinter.messagebox.showinfo('Success', 'Success Process RC4 Algorithm')
+        saveBtnRc4.config(state=NORMAL)
       isInputFileRc4Text.set(False)
-    # except:
-    #   tkinter.messagebox.showinfo('Error', 'Something went wrong when processing RC4 Algorithm')
+    except:
+      tkinter.messagebox.showinfo('Error', 'Something went wrong when processing RC4 Algorithm')
 
 #GUI
 rc4 = Toplevel(home)
@@ -145,9 +155,9 @@ Button(rc4, text='Home', font=('Calibri', 12, 'bold'), width=7, command=home_win
 Button(rc4, text='Close', font=('Calibri', 12, 'bold'), width=7, command=close_win, bg='red2').place(x=280, y=10)
 
 Label(rc4, text='RC4 Mode:').place(x=10, y=60)
-rc4Mode = StringVar(rc4, 'encrypt')
-Radiobutton(rc4, text='Encrypt', variable=rc4Mode, value='encrypt', command=setBtnProcess).place(x=75, y=60)
-Radiobutton(rc4, text='Decrypt', variable=rc4Mode, value='decrypt', command=setBtnProcess).place(x=170, y=60)
+rc4Mode = BooleanVar(rc4, True)
+Radiobutton(rc4, text='Encrypt', variable=rc4Mode, value=True, state=DISABLED).place(x=75, y=60)
+Radiobutton(rc4, text='Decrypt', variable=rc4Mode, value=True, state=DISABLED).place(x=170, y=60)
 
 Label(rc4, text='Import File:').place(x=10, y=90)
 rc4ImportType = BooleanVar(rc4, False)
@@ -172,10 +182,10 @@ outputRc4 = ScrolledText(rc4, height=5, width=40, state=DISABLED)
 outputRc4.place(x=10, y=355)
 
 Button(rc4, text='Copy', command=copyOutputRc4, bg='grey85', width=7).place(x=10, y=440)
-Button(rc4, text='Save', command=saveOutputRc4, bg='grey85', width=7).place(x=290, y=440)
+saveBtnRc4 = Button(rc4, text='Save', command=saveOutputRc4, bg='grey85', width=7, state=DISABLED)
+saveBtnRc4.place(x=290, y=440)
 
-rc4ProcessBtn = Button(rc4, text='Encrypt Now!', font=('Calibri', 12, 'bold'), command=processRc4, bg='RoyalBlue1', width=20)
-rc4ProcessBtn.place(x=95, y=480)
+Button(rc4, text='Encrypt/Decrypt Now!', font=('Calibri', 12, 'bold'), command=processRc4, bg='RoyalBlue1', width=20).place(x=95, y=480)
 
 Button(rc4, text='Reset', font=('Calibri', 12, 'bold'), command=rc4Reset, bg='red2', width=7).place(x=155, y=525)
 
