@@ -255,18 +255,17 @@ def processSteg():
     tkinter.messagebox.showinfo('Error', 'Message file is not available')
   else:
     try:
+      msg = stegMsg.get()
       if stegEncryptMode.get() and stegAction.get() == 'hide':
-        # encrypt message
-        print('encrypt message')
+        msg = methodRc4(keySteg.get('1.0', 'end-1c'), msg)
       if stegMediaType.get() == 'image':
-        # result = methodStegImage(stegAction.get(), stegMedia.get(), stegMsg.get())
+        # result = methodStegImage(stegAction.get(), stegMedia.get(), msg)
         tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Image')
       else:
-        # result = methodStegAudio(stegAction.get(), stegMedia.get(), stegMsg.get())
+        # result = methodStegAudio(stegAction.get(), stegMedia.get(), msg)
         tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Audio')
       if stegEncryptMode.get() and stegAction.get() == 'extract':
-        # decrypt result
-        print('decrypt result')
+        result = methodRc4(keySteg.get('1.0', 'end-1c'), result)
       # if stegAction.get() == 'hide': # Export File
       #   result = bytes('aku anak Indonesia', 'utf-8')
       #   fileName = writeFile(result)
