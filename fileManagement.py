@@ -3,13 +3,17 @@ from os import read
 
 def readFile(fullDirFile, isText=False):
   fileName = fullDirFile[fullDirFile.rindex('/')+1:]
-  f = open(fullDirFile, 'rb')
-  fbyte = f.read()
-  f.close()
-  if not isText:
+  if isText:
+    f = open(fullDirFile, 'r')
+    fstr = f.read()
+    f.close()
+  else:
+    f = open(fullDirFile, 'rb')
+    fbyte = f.read()
+    f.close()
     fbyte = bytes(fileName + '|~FCU~|', 'utf-8') + fbyte
-  fstr = str(fbyte)
-  fstr = fstr[2:len(fstr)-1]
+    fstr = str(fbyte)
+    fstr = fstr[2:len(fstr)-1]
 
   return fileName, fstr
 
