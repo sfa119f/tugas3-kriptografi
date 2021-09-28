@@ -61,11 +61,3 @@ def methodRc4(key, textInput, byte=False):
     res = bytes(text)
 
   return res
-
-key = 'indomie'
-pt = 'Aku anak indonesia, Anak yang kuat.'
-ct = methodRc4(key, pt)
-print(ct)
-res = methodRc4(key, ct)
-print(res)
-print(pt == res)
