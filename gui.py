@@ -1,4 +1,3 @@
-from os import read
 from tkinter import *
 import tkinter.messagebox
 from tkinter import filedialog
@@ -7,29 +6,35 @@ from fileManagement import *
 from rc4Cipher import methodRc4
 
 def home_win():
+# Membuka windows home
   home.deiconify()
   rc4.withdraw()
   steg.withdraw()
 
 def rc4_win():
+# Membuka windows RC4
   home.withdraw()
   rc4.deiconify()
   steg.withdraw()
 
 def steg_win():
+# Membuka windows steganografi
   home.withdraw()
   rc4.withdraw()
   steg.deiconify()
 
 def close_win():
+# Menutup semua windows
   steg.destroy()
   rc4.destroy()
   home.destroy()
 
 def disable_event():
+# Menonaktifkan sebuah event
   pass
 
 # ------------------------- Windows Home ------------------------- #
+# --- GUI Home --- #
 home = Tk()
 home.title('Home')
 home.geometry('220x150')
@@ -43,8 +48,9 @@ Button(home, text='Modified RC4', font=('Calibri', 12, 'bold'), width=14, comman
 Button(home, text='Steganografi', font=('Calibri', 12, 'bold'), width=14, command=steg_win, bg='RoyalBlue1').place(x=50, y=95)
 
 # ------------------------- Windows RC4 ------------------------- #
-# Method
+# --- Method RC4 --- #
 def setRc4FileBtn():
+# Setting form RC4 saat mengaktifkan atau menonaktifkan import file
   if (rc4ImportType.get()):
     rc4FileBtn.config(state=NORMAL)
     inputRc4.delete('1.0', END)
@@ -60,6 +66,7 @@ def setRc4FileBtn():
     saveBtnRc4.config(state=NORMAL)
 
 def importRc4File():
+# Mengimport file untuk pemrosesan RC4
   try:
     fullDirFile = filedialog.askopenfile().name
     if fullDirFile[fullDirFile.rindex('.')+1:] == 'txt':
@@ -79,6 +86,7 @@ def importRc4File():
     tkinter.messagebox.showinfo('Error', 'Something went wrong when import file')
 
 def copyOutputRc4():
+# Menyalin output RC4 ke clipboard
   try:
     if outputRc4.get('1.0', 'end-1c') == '':
       raise Exception()
@@ -90,6 +98,7 @@ def copyOutputRc4():
     tkinter.messagebox.showinfo('Error', 'No value is copied')
 
 def saveOutputRc4():
+# Menyimpan output RC4 ke file
   try:
     res = "Input:\n" + inputRc4.get('1.0', 'end-1c') + '\nOutput:\n' + outputRc4.get('1.0', 'end-1c')
     fbyte = bytes(res, 'utf-8')
@@ -99,6 +108,7 @@ def saveOutputRc4():
     tkinter.messagebox.showinfo('Error', 'Error when export result to file')
 
 def rc4Reset():
+# Mereset form RC4
   rc4ImportType.set(False)
   setRc4FileBtn()
   rc4FileByte.set('')
@@ -110,6 +120,7 @@ def rc4Reset():
   isInputFileRc4Text.set(False)
 
 def processRc4():
+# Pemrosesan untuk enkripsi atau deskripsi text menggunakan algoritma RC4
   outputRc4.config(state=NORMAL)
   outputRc4.delete('1.0', END)
   outputRc4.config(state=DISABLED)
@@ -138,7 +149,7 @@ def processRc4():
     except:
       tkinter.messagebox.showinfo('Error', 'Something went wrong when processing RC4 Algorithm')
 
-#GUI
+# --- GUI RC4 --- #
 rc4 = Toplevel(home)
 rc4.title('Modified RC4')
 rc4.geometry('360x580')
@@ -192,8 +203,9 @@ Button(rc4, text='Reset', font=('Calibri', 12, 'bold'), command=rc4Reset, bg='re
 rc4.withdraw()
 
 # ------------------------- Windows Steganografi ------------------------- #
-# Method
+# --- Method Steganografi --- #
 def showStegKey():
+# Setting steganografi form saat menggunakan atau tidak enkripsi RC4
   if (stegEncryptMode.get()):
     keySteg.config(state=NORMAL)
   else:
@@ -201,6 +213,7 @@ def showStegKey():
     keySteg.config(state=DISABLED)
 
 def importMediaSteg():
+# Mengimport multimedia file untuk steganografi
   try:
     fullFileName = filedialog.askopenfile().name
     fileName = fullFileName[fullFileName.rindex('/')+1:]
@@ -213,6 +226,7 @@ def importMediaSteg():
     tkinter.messagebox.showinfo('Error', 'Something went wrong when import file')
 
 def showStegActType():
+# Setting steganografi form saat memilih menyembunyikan atau mengekstrak file
   if stegAction.get() == 'hide':
     stegSeqRad.config(state=NORMAL)
     stegRandRad.config(state=NORMAL)
@@ -228,6 +242,7 @@ def showStegActType():
     stegProcessBtn.config(text='Extract Message Now!')
 
 def importStegMsg():
+# Mengimport file pesan untuk pemrosesan steganografi
   try:
     fullDirFile = filedialog.askopenfile().name
     fileName, fbyte = readFile(fullDirFile)
@@ -238,6 +253,7 @@ def importStegMsg():
     tkinter.messagebox.showinfo('Error', 'Something went wrong when import file')
 
 def stegReset():
+# Mereset form steganografi
   stegEncryptMode.set(False)
   showStegKey()
   stegAction.set('hide')
@@ -247,6 +263,7 @@ def stegReset():
   stegMsg.set('')
 
 def processSteg():
+# Pemrosesan untuk menyembunyikan atau mengekstrak file dengan LSB
   if stegEncryptMode.get() and keySteg.get('1.0', 'end-1c') == '':
     tkinter.messagebox.showinfo('Error', 'Key is empty')
   elif stegMedia.get() == '':
@@ -273,7 +290,7 @@ def processSteg():
     except:
       tkinter.messagebox.showinfo('Error', 'Something went wrong when processing steganografi')
 
-# GUI
+# --- GUI Steganografi --- #
 steg = Toplevel(home)
 steg.title('Steganografi')
 steg.geometry('330x450')

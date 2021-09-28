@@ -1,7 +1,10 @@
 MOD = 256
 
 def getLfsr(key):
-# Generate keystream using LFSR
+# Membuat keystream menggunakan LFSR
+# Bit keluaran dalam untuk string dengan panjang n adalah sn tiap fungsi umpan balik dipanggil
+# Fungsi umpan balik: s0 = f(s0, sn) = s0 XOR sn
+# Output: keystream LFSR
   res = []
   for i in range(2 ** len(key) - 1):
     res.append(key[-1])
@@ -12,7 +15,9 @@ def getLfsr(key):
   return res
 
 def getKeystreamRc4(key):
-# Generate keystream using RC4 algorithm and LFSR
+# Membuat keystream menggunakan RC4 algorithm dan LFSR
+# Proses: KSA - PRGA - XOR dengan hasil getLfsr(key)
+# Output: keystream RC4
   key = [ord(val) for val in key]
   lfsr = getLfsr(key)
 
@@ -41,7 +46,8 @@ def getKeystreamRc4(key):
     yield res
 
 def methodRc4(key, textInput):
-# Encrypt or Decrypt textInput with key using RC4 algorithm
+# Enkripsi atau deskripsi textInput dengan key menggunakan RC4 algorithm
+# Output: hasil enkripsi atau deskripsi
   keystream = getKeystreamRc4(key)
   textInput = [ord(val) for val in textInput]
 

@@ -1,7 +1,8 @@
 import os.path
-from os import read
 
 def readFile(fullDirFile, isText=False):
+# Read file dengan input full directory file dan boolean apakah file adalah text (opsional)
+# Output: namafile dan string pembacaan file
   fileName = fullDirFile[fullDirFile.rindex('/')+1:]
   if isText:
     f = open(fullDirFile, 'r')
@@ -18,6 +19,8 @@ def readFile(fullDirFile, isText=False):
   return fileName, fstr
 
 def writeFile(fbyte, file_name=None):
+# Write file dengan input byte file dan nama file (opsional)
+# Output: namafile yang disimpan
   if (str(fbyte).find('|~FCU~|') == -1):
     fileName = file_name if file_name is not None else 'fileResultText.txt'
     byteFile = fbyte
