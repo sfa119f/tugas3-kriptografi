@@ -4,6 +4,9 @@ from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
 from fileManagement import *
 from rc4Cipher import methodRc4
+from fileStorage import StorageFile
+
+fileRc4Storage = StorageFile()
 
 def home_win():
 # Membuka windows home
@@ -16,6 +19,7 @@ def rc4_win():
   home.withdraw()
   rc4.deiconify()
   steg.withdraw()
+  rc4Reset()
 
 def steg_win():
 # Membuka windows steganografi
@@ -49,6 +53,12 @@ Button(home, text='Steganografi', font=('Calibri', 12, 'bold'), width=14, comman
 
 # ------------------------- Windows RC4 ------------------------- #
 # --- Method RC4 --- #
+def setBtnProcess():
+  if (rc4Mode.get() == 'encrypt'):
+    rc4ProcessBtn.config(text='Encrypt Now!')
+  else:
+    rc4ProcessBtn.config(text='Decrypt Now!')
+
 def setRc4FileBtn():
 # Setting form RC4 saat mengaktifkan atau menonaktifkan import file
   if (rc4ImportType.get()):
@@ -63,7 +73,7 @@ def setRc4FileBtn():
     labelRc4File.config(text='')
     rc4FileBtn.config(state=DISABLED)
     inputRc4.config(state=NORMAL)
-    saveBtnRc4.config(state=NORMAL)
+    saveBtnRc4.config(state=DISABLED)
 
 def importRc4File():
 # Mengimport file untuk pemrosesan RC4
@@ -71,13 +81,16 @@ def importRc4File():
     fullDirFile = filedialog.askopenfile().name
     if fullDirFile[fullDirFile.rindex('.')+1:] == 'txt':
       isInputFileRc4Text.set(True)
-      fileName, fstr = readFile(fullDirFile, True)
+      fileName, fstr = readFile(fullDirFile, isText=True)
       inputRc4.config(state=NORMAL)
       inputRc4.insert(tkinter.END, fstr)
       inputRc4.config(state=DISABLED)
     else:
-      fileName, fbyte = readFile(fullDirFile)
-      rc4FileByte.set(fbyte)
+      if rc4Mode.get() == 'encrypt':
+        fileName, fbyte = readFile(fullDirFile, isMakeMark=True)
+      else:
+        fileName, fbyte = readFile(fullDirFile)
+      fileRc4Storage.setFile(fbyte)
     labelRc4File.config(text=fileName)
     tkinter.messagebox.showinfo('Success', 'Success import: ' + fileName)
     if keyRc4.get('1.0', 'end-1c') != '':
@@ -100,6 +113,8 @@ def copyOutputRc4():
 def saveOutputRc4():
 # Menyimpan output RC4 ke file
   try:
+    if inputRc4.get('1.0', 'end-1c') == '' or outputRc4.get('1.0', 'end-1c') == '':
+      raise Exception()
     res = "Input:\n" + inputRc4.get('1.0', 'end-1c') + '\nOutput:\n' + outputRc4.get('1.0', 'end-1c')
     fbyte = bytes(res, 'utf-8')
     fileName = writeFile(fbyte)
@@ -109,9 +124,11 @@ def saveOutputRc4():
 
 def rc4Reset():
 # Mereset form RC4
+  rc4Mode.set('encrypt')
+  setBtnProcess()
   rc4ImportType.set(False)
   setRc4FileBtn()
-  rc4FileByte.set('')
+  fileRc4Storage.setFile(None)
   keyRc4.delete('1.0', END)
   inputRc4.delete('1.0', END)
   outputRc4.config(state=NORMAL)
@@ -126,17 +143,19 @@ def processRc4():
   outputRc4.config(state=DISABLED)
   if keyRc4.get('1.0', 'end-1c') == '':
     tkinter.messagebox.showinfo('Error', 'Key not available')
-  elif rc4FileByte.get() == '' and rc4ImportType.get() and not isInputFileRc4Text.get():
+  elif fileRc4Storage.getFile() == None and rc4ImportType.get() and not isInputFileRc4Text.get():
     tkinter.messagebox.showinfo('Error', 'Input file not available')
   elif inputRc4.get('1.0', 'end-1c') == '' and (not rc4ImportType.get() or isInputFileRc4Text.get()):
     tkinter.messagebox.showinfo('Error', 'Input not available')
   else:
     try:
       if rc4ImportType.get() and not isInputFileRc4Text.get():
-        # result = methodRc4(rc4Mode.get(), keyRc4.get('1.0', 'end-1c'), rc4FileByte.get())
-        # fileName = writeFile(bytes(rc4FileByte.get(), 'utf-8'), 'test.bin')
-        # tkinter.messagebox.showinfo('Success', 'Success export result to: '+ fileName)
-        tkinter.messagebox.showinfo('Error', 'Encrypt/decrypt using binary files has not been implemented')
+        result = methodRc4(keyRc4.get('1.0', 'end-1c'), fileRc4Storage.getFile(), True)
+        if rc4Mode.get() == 'encrypt':
+          fileName = writeFile(result, file_name='resultEncryption.bin')
+        else:
+          fileName = writeFile(result)
+        tkinter.messagebox.showinfo('Success', 'Success export result to: '+ fileName)
         saveBtnRc4.config(state=DISABLED)
       else:
         result = methodRc4(keyRc4.get('1.0', 'end-1c'), inputRc4.get('1.0', 'end-1c'))
@@ -159,16 +178,15 @@ rc4.geometry("+{}+{}".format(
 rc4.protocol("WM_DELETE_WINDOW", disable_event)
 rc4.resizable(0,0)
 
-rc4FileByte = StringVar(rc4)
 isInputFileRc4Text = BooleanVar(rc4, False)
 
 Button(rc4, text='Home', font=('Calibri', 12, 'bold'), width=7, command=home_win, bg='RoyalBlue1').place(x=10, y=10)
 Button(rc4, text='Close', font=('Calibri', 12, 'bold'), width=7, command=close_win, bg='red2').place(x=280, y=10)
 
 Label(rc4, text='RC4 Mode:').place(x=10, y=60)
-rc4Mode = BooleanVar(rc4, True)
-Radiobutton(rc4, text='Encrypt', variable=rc4Mode, value=True, state=DISABLED).place(x=75, y=60)
-Radiobutton(rc4, text='Decrypt', variable=rc4Mode, value=True, state=DISABLED).place(x=170, y=60)
+rc4Mode = StringVar(rc4, 'encrypt')
+Radiobutton(rc4, text='Encrypt', variable=rc4Mode, value='encrypt', command=setBtnProcess).place(x=75, y=60)
+Radiobutton(rc4, text='Decrypt', variable=rc4Mode, value='decrypt', command=setBtnProcess).place(x=170, y=60)
 
 Label(rc4, text='Import File:').place(x=10, y=90)
 rc4ImportType = BooleanVar(rc4, False)
@@ -196,7 +214,8 @@ Button(rc4, text='Copy', command=copyOutputRc4, bg='grey85', width=7).place(x=10
 saveBtnRc4 = Button(rc4, text='Save', command=saveOutputRc4, bg='grey85', width=7, state=DISABLED)
 saveBtnRc4.place(x=290, y=440)
 
-Button(rc4, text='Encrypt/Decrypt Now!', font=('Calibri', 12, 'bold'), command=processRc4, bg='RoyalBlue1', width=20).place(x=95, y=480)
+rc4ProcessBtn = Button(rc4, text='Encrypt Now!', font=('Calibri', 12, 'bold'), command=processRc4, bg='RoyalBlue1', width=20)
+rc4ProcessBtn.place(x=95, y=480)
 
 Button(rc4, text='Reset', font=('Calibri', 12, 'bold'), command=rc4Reset, bg='red2', width=7).place(x=155, y=525)
 

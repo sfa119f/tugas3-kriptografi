@@ -45,14 +45,27 @@ def getKeystreamRc4(key):
 
     yield res
 
-def methodRc4(key, textInput):
+def methodRc4(key, textInput, byte=False):
 # Enkripsi atau deskripsi textInput dengan key menggunakan RC4 algorithm
 # Output: hasil enkripsi atau deskripsi
   keystream = getKeystreamRc4(key)
-  textInput = [ord(val) for val in textInput]
-
-  res = ''
-  for val in textInput:
-    res += chr(val ^ next(keystream))
+  if not byte:
+    text = [ord(val) for val in textInput]
+    res = ''
+    for val in text:
+      res += chr(val ^ next(keystream))
+  else:
+    text = [val for val in textInput]
+    for i in range (len(text)):
+      text[i] = text[i] ^ next(keystream)
+    res = bytes(text)
 
   return res
+
+key = 'indomie'
+pt = 'Aku anak indonesia, Anak yang kuat.'
+ct = methodRc4(key, pt)
+print(ct)
+res = methodRc4(key, ct)
+print(res)
+print(pt == res)

@@ -1,6 +1,6 @@
 import os.path
 
-def readFile(fullDirFile, isText=False):
+def readFile(fullDirFile, isText=False, isMakeMark=False):
 # Read file dengan input full directory file dan boolean apakah file adalah text (opsional)
 # Output: namafile dan string pembacaan file
   fileName = fullDirFile[fullDirFile.rindex('/')+1:]
@@ -8,15 +8,14 @@ def readFile(fullDirFile, isText=False):
     f = open(fullDirFile, 'r')
     fstr = f.read()
     f.close()
+    return fileName, fstr
   else:
     f = open(fullDirFile, 'rb')
     fbyte = f.read()
     f.close()
-    fbyte = bytes(fileName + '|~FCU~|', 'utf-8') + fbyte
-    fstr = str(fbyte)
-    fstr = fstr[2:len(fstr)-1]
-
-  return fileName, fstr
+    if (isMakeMark):
+      fbyte = bytes(fileName + '|~FCU~|', 'utf-8') + fbyte
+    return fileName, fbyte
 
 def writeFile(fbyte, file_name=None):
 # Write file dengan input byte file dan nama file (opsional)
