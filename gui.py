@@ -54,6 +54,7 @@ Button(home, text='Steganografi', font=('Calibri', 12, 'bold'), width=14, comman
 # ------------------------- Windows RC4 ------------------------- #
 # --- Method RC4 --- #
 def setBtnProcess():
+# Setting form RC4 saat mengubah mode menjadi enkripsi atau dekripsi
   if (rc4Mode.get() == 'encrypt'):
     rc4ProcessBtn.config(text='Encrypt Now!')
   else:

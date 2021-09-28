@@ -1,7 +1,7 @@
 import os.path
 
 def readFile(fullDirFile, isText=False, isMakeMark=False):
-# Read file dengan input full directory file dan boolean apakah file adalah text (opsional)
+# Read file dengan input full directory file, boolean apakah file adalah text (opsional), dan boolean apakah menambahkan mark di filenya
 # Output: namafile dan string pembacaan file
   fileName = fullDirFile[fullDirFile.rindex('/')+1:]
   if isText:
