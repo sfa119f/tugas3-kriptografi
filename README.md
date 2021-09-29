@@ -5,6 +5,7 @@ Pembuatan aplikasi ini bertujuan untuk memenuhi Tugas 3 Mata Kuliah Kriptografi 
 ## Requirement
 - Terinstall [python](https://www.python.org/downloads/) versi 3 (disarankan memakai versi terbaru)
 - Terinstall tkinter python. Install dengan `pip install tk`
+- Terinstall opencv python. Install dengan `pip install opencv-python`
 
 ## Compile and Running
 1. Buka folder tucil1-kriptografi pada terminal
@@ -13,5 +14,5 @@ Pembuatan aplikasi ini bertujuan untuk memenuhi Tugas 3 Mata Kuliah Kriptografi 
 
 ## Authors
 - Faris Fadhilah - 13518026 - Teknik Informatika 2018, Institut Teknologi Bandung, Bandung
-- Muh. Cisco Zulfikar - 13518026 - Teknik Informatika 2018, Institut Teknologi Bandung, Bandung
+- Muh. Cisco Zulfikar - 13518073 - Teknik Informatika 2018, Institut Teknologi Bandung, Bandung
 - Syarifuddin F A - 13518095 - Teknik Informatika 2018, Institut Teknologi Bandung, Bandung
