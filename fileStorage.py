@@ -9,8 +9,8 @@ class StorageFile:
   def setFile(self, bFile):
     self.file = bFile
 
-  def getFile(self):
+  def getFName(self):
     return self.filename
 
-  def setFile(self, fname):
+  def setFName(self, fname):
     self.filename = fname
