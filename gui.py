@@ -1,3 +1,5 @@
+import cv2
+import wave
 from tkinter import *
 import tkinter.messagebox
 from tkinter import filedialog
@@ -7,6 +9,9 @@ from rc4Cipher import methodRc4
 from fileStorage import StorageFile
 
 fileRc4Storage = StorageFile()
+fileStegStorage = StorageFile()
+mediaStegStorage = StorageFile()
+paramAudioStegStorage = StorageFile()
 
 def home_win():
 # Membuka windows home
@@ -26,6 +31,7 @@ def steg_win():
   home.withdraw()
   rc4.withdraw()
   steg.deiconify()
+  stegReset()
 
 def close_win():
 # Menutup semua windows
@@ -80,7 +86,7 @@ def importRc4File():
 # Mengimport file untuk pemrosesan RC4
   try:
     fullDirFile = filedialog.askopenfile().name
-    if fullDirFile[fullDirFile.rindex('.')+1:] == 'txt':
+    if fullDirFile[fullDirFile.rindex('.')+1:].lower() == 'txt':
       isInputFileRc4Text.set(True)
       fileName, fstr = readFile(fullDirFile, isText=True)
       inputRc4.config(state=NORMAL)
@@ -130,6 +136,7 @@ def rc4Reset():
   rc4ImportType.set(False)
   setRc4FileBtn()
   fileRc4Storage.setFile(None)
+  fileRc4Storage.setFName(None)
   keyRc4.delete('1.0', END)
   inputRc4.delete('1.0', END)
   outputRc4.config(state=NORMAL)
@@ -235,15 +242,33 @@ def showStegKey():
 def importMediaSteg():
 # Mengimport multimedia file untuk steganografi
   try:
-    fullFileName = filedialog.askopenfile().name
-    fileName = fullFileName[fullFileName.rindex('/')+1:]
-    f = open(fullFileName, 'rb')
-    stegMedia.set(f.read())
-    f.close()
+    fullDirFile = filedialog.askopenfile().name
+    fileName = fullDirFile[fullDirFile.rindex('/')+1:]
+    if stegMediaType.get() == 'image':
+      if fullDirFile[fullDirFile.rindex('.')+1:].lower() != 'bmp' and fullDirFile[fullDirFile.rindex('.')+1:].lower() != 'png':
+        raise Exception('Format Error', 'Just except format .bmp or .png')
+      else:
+        img = cv2.imread(fullDirFile)
+        mediaStegStorage.setFile(img)
+    else:
+      if fullDirFile[fullDirFile.rindex('.')+1:].lower() != 'wav':
+        raise Exception('Format Error', 'Just except format .wav')
+      else:
+        song = wave.open(fullDirFile, mode='rb')
+        frameBytes = bytearray(list(song.readframes(song.getnframes())))
+        params = song.getparams()
+        song.close()
+        mediaStegStorage.setFile(frameBytes)
+        paramAudioStegStorage.setFile(params)
+    mediaStegStorage.setFName(fileName)
     labelStegMedia.config(text=fileName)
     tkinter.messagebox.showinfo('Success', 'Success import: ' + fileName)
-  except:
-    tkinter.messagebox.showinfo('Error', 'Something went wrong when import file')
+  except Exception as e:
+    eHead, eMsg = e.args
+    if eHead == 'Format Error':
+      tkinter.messagebox.showinfo(eHead, eMsg)
+    else:
+      tkinter.messagebox.showinfo('Error', 'Something went wrong when import file')
 
 def showStegActType():
 # Setting steganografi form saat memilih menyembunyikan atau mengekstrak file
@@ -265,8 +290,8 @@ def importStegMsg():
 # Mengimport file pesan untuk pemrosesan steganografi
   try:
     fullDirFile = filedialog.askopenfile().name
-    fileName, fbyte = readFile(fullDirFile)
-    stegMsg.set(fbyte)
+    fileName, fbyte = readFile(fullDirFile, isMakeMark=True)
+    fileStegStorage.setFile(fbyte)
     labelStegMsg.config(text=fileName)
     tkinter.messagebox.showinfo('Success', 'Success import: ' + fileName)
   except:
@@ -279,34 +304,45 @@ def stegReset():
   stegAction.set('hide')
   showStegActType()
   stegMediaType.set('image')
-  stegMedia.set('')
-  stegMsg.set('')
+  labelStegMedia.config(text='')
+  labelStegMsg.config(text='')
+  mediaStegStorage.setFile(None)
+  mediaStegStorage.setFName(None)
+  fileStegStorage.setFile(None)
+  fileStegStorage.setFName(None)
+  paramAudioStegStorage.setFile(None)
+  paramAudioStegStorage.setFName(None)
 
 def processSteg():
 # Pemrosesan untuk menyembunyikan atau mengekstrak file dengan LSB
   if stegEncryptMode.get() and keySteg.get('1.0', 'end-1c') == '':
     tkinter.messagebox.showinfo('Error', 'Key is empty')
-  elif stegMedia.get() == '':
+  elif mediaStegStorage.getFile() == '':
     tkinter.messagebox.showinfo('Error', 'Multimedia file is not available')
-  elif stegAction.get() == 'hide' and stegMsg.get() == '':
+  elif stegAction.get() == 'hide' and fileStegStorage.get() == '':
     tkinter.messagebox.showinfo('Error', 'Message file is not available')
   else:
     try:
-      msg = stegMsg.get()
+      msg = fileStegStorage.get()
       if stegEncryptMode.get() and stegAction.get() == 'hide':
-        msg = methodRc4(keySteg.get('1.0', 'end-1c'), msg)
+        msg = methodRc4(keySteg.get('1.0', 'end-1c'), msg, True)
       if stegMediaType.get() == 'image':
-        # result = methodStegImage(stegAction.get(), stegMedia.get(), msg)
+        # result, msgResult = methodStegImage(stegAction.get(), mediaStegStorage.getFile(), msg)
+        # cv2.imwrite(mediaStegStorage.getFName(), result)
         tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Image')
       else:
-        # result = methodStegAudio(stegAction.get(), stegMedia.get(), msg)
+        # result, msgResult = methodStegAudio(stegAction.get(), mediaStegStorage.getFile(), msg)
+        # song = wave.open(mediaStegStorage.getFName(), mode='wb')
+        # song.setparams(paramAudioStegStorage.getFile())
+        # song.writeframes(frame)
+        # song.close()
         tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Audio')
       if stegEncryptMode.get() and stegAction.get() == 'extract':
-        result = methodRc4(keySteg.get('1.0', 'end-1c'), result)
-      # if stegAction.get() == 'hide': # Export File
-      #   result = bytes('aku anak Indonesia', 'utf-8')
-      #   fileName = writeFile(result)
-      #   tkinter.messagebox.showinfo('Success', 'Success export result to: '+ fileName)
+        msgResult = methodRc4(keySteg.get('1.0', 'end-1c'), msgResult, True)
+      if stegAction.get() == 'extract':
+        print('Write message to filebyte')
+        # fileName = writeFile(msgResult)
+        # tkinter.messagebox.showinfo('Success', 'Success export result message to: '+ fileName)
     except:
       tkinter.messagebox.showinfo('Error', 'Something went wrong when processing steganografi')
 
@@ -319,9 +355,6 @@ steg.geometry("+{}+{}".format(
 ))
 steg.protocol("WM_DELETE_WINDOW", disable_event)
 steg.resizable(0,0)
-
-stegMedia = StringVar(steg)
-stegMsg = StringVar(steg)
 
 Button(steg, text='Home', font=('Calibri', 12, 'bold'), width=7, command=home_win, bg='RoyalBlue1').place(x=10, y=10)
 Button(steg, text='Close', font=('Calibri', 12, 'bold'), width=7, command=close_win, bg='red2').place(x=250, y=10)
