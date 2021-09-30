@@ -1,6 +1,8 @@
 from fileManagement import *
 import random
 import cv2
+from math import log10, sqrt 
+import numpy as np
 
 def convertMessage(message):
     listByte = [val for val in message]
@@ -27,27 +29,48 @@ def randomizeList(filenameImg, pixel):
     random.shuffle(pixel)
     return pixel
 
+def psnrImage(image,imageModified):
+    mse = np.mean((image - imageModified) ** 2)
+    if mse == 0:
+        return 100
+    maxPixel = 255.0
+    psnr = 20 * log10(maxPixel / sqrt(mse))
+    return psnr
+
 def steganoImage(filenameImg, msg, action, actType):
     if(action == 'hide'):
         image = readImage(filenameImg)
         pix = list(image.getdata())
+        print(pix[:3])
         pixelFlat = [x for sets in pix for x in sets]
         message = convertMessage(msg)
         pixelList = list(range(len(pixelFlat)))
         if(actType == 'rand'):
             pixelList = randomizeList(filenameImg,pixelList)
         if(len(message) < len(pixelFlat)):
-            print(pixelFlat[:5])
+            # print(pixelFlat[:5])
             pixelModified = modifyPixel(pixelFlat, message, pixelList)
-        print(pixelModified[:5])
+
+        # print(pixelModified[:5])
+        return pixelModified
         
     elif(action == 'extractor'):
         image = readImage(filenameImg)
+        pix = list(image.getdata())
+        pixelFlat = [x for sets in pix for x in sets]
         message = []
+        msgBinary = ''
+        for i in range (len(pixelFlat)):
+            if(i % 2 == 0):
+                msgBinary+='0'
+            else:
+                msgBinary+='1'
+        message += chr(int(msgBinary, 2))
+        return message
     
 fullDirFile = 'C:/Users/faris/OneDrive/Documents/GitHub/tugas3-kriptografi/Tugas3-Sem1-2021-2022.pdf'
 fileName, byteFile = readFile(fullDirFile, isMakeMark=True)
-steganoImage('blue_sky.bmp',byteFile,'hide','seq')
+pixel = steganoImage('blue_sky.bmp',byteFile,'hide','seq')
 
 
 
