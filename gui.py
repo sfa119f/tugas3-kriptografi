@@ -7,8 +7,9 @@ from fileManagement import *
 from rc4Cipher import methodRc4
 from fileStorage import StorageFile
 from steganografiAudio import methodStegAudio
-from steganoImage import methodStegImage
+from steganoImage import methodStegImage,psnrImage
 from PIL import Image
+import numpy as np
 
 fileRc4Storage = StorageFile()
 fileStegStorage = StorageFile()
@@ -335,9 +336,17 @@ def processSteg():
         msg = methodRc4(keySteg.get('1.0', 'end-1c'), msg, True)
       if stegMediaType.get() == 'image':
         result, msgResult = methodStegImage(stegAction.get(), stegActType.get(), mediaStegStorage.getFName(), mediaStegStorage.getFile(), msg)
-        if (result != None):
-          result.save('result/' + mediaStegStorage.getFName())
-          tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Image')
+        tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Image')
+        if (len(result) != 0):
+          newImage = Image.fromarray(result)
+          newImage.save('result/' + mediaStegStorage.getFName())
+          tkinter.messagebox.showinfo('Success', 'Result image export to: ./result/' + mediaStegStorage.getFName())
+          image = np.array(mediaStegStorage.getFile())
+          psnr = psnrImage(image, result)
+          if(psnr > 30):
+            tkinter.messagebox.showinfo('PSNR', 'PSNR is accepted, value: ' + '%.2f' % psnr)
+          else:
+            tkinter.messagebox.showinfo('PSNR', 'PSNR is not accepted, value: ' + '%.2f' % psnr)
       else:
         result, msgResult = methodStegAudio(stegAction.get(), stegActType.get(), mediaStegStorage.getFName(), mediaStegStorage.getFile(), msg)
         tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Audio')
