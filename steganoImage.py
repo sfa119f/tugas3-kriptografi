@@ -37,41 +37,43 @@ def psnrImage(image,imageModified):
     psnr = 20 * log10(maxPixel / sqrt(mse))
     return psnr
 
-def steganoImage(filenameImg, msg, action, actType):
-    if(action == 'hide'):
-        image = readImage(filenameImg)
-        pix = list(image.getdata())
-        print(pix[:3])
-        pixelFlat = [x for sets in pix for x in sets]
-        message = convertMessage(msg)
-        pixelList = list(range(len(pixelFlat)))
-        if(actType == 'rand'):
-            pixelList = randomizeList(filenameImg,pixelList)
-        if(len(message) < len(pixelFlat)):
-            # print(pixelFlat[:5])
-            pixelModified = modifyPixel(pixelFlat, message, pixelList)
+def hideSteganoImage(filenameImg, msg, actType):
+    image = readImage(filenameImg)
+    arrImage = np.array(image)
+    shapeImage = arrImage.shape
+    pixelFlat = arrImage.ravel()
+    message = convertMessage(msg)
+    print(message[:20])
+    pixelList = list(range(len(pixelFlat)))
+    if(actType == 'rand'):
+        pixelList = randomizeList(filenameImg,pixelList)
+    if(len(message) < len(pixelFlat)):
+        pixelModified = modifyPixel(pixelFlat, message, pixelList)
+    vectorImage = np.matrix(pixelModified)
+    newPixel = np.asarray(vectorImage).reshape(shapeImage)
+    # newImage = Image.fromarray(newPixel)
+    # print(newImage)
+    # newImage = newImage.save('blue_sky1.bmp')
+    return newPixel
 
-        # print(pixelModified[:5])
-        return pixelModified
-        
-    elif(action == 'extractor'):
-        image = readImage(filenameImg)
-        pix = list(image.getdata())
-        pixelFlat = [x for sets in pix for x in sets]
-        message = []
-        msgBinary = ''
-        for i in range (len(pixelFlat)):
-            if(i % 2 == 0):
-                msgBinary+='0'
-            else:
-                msgBinary+='1'
-        message += chr(int(msgBinary, 2))
-        return message
+def extractSteganoImage(filenameImg, actType):    
+    image = readImage(filenameImg)
+    arrImage = np.array(image)
+    pixelFlat = arrImage.ravel()
+    message = []
+    msgBinary = []
+    for i in range (len(pixelFlat)):
+        if(i % 2 == 0):
+            msgBinary.append(0)
+        else:
+            msgBinary.append(1)
+    print(msgBinary[:20])
+    return message
     
 fullDirFile = 'C:/Users/faris/OneDrive/Documents/GitHub/tugas3-kriptografi/Tugas3-Sem1-2021-2022.pdf'
 fileName, byteFile = readFile(fullDirFile, isMakeMark=True)
-pixel = steganoImage('blue_sky.bmp',byteFile,'hide','seq')
-
+pixel = hideSteganoImage('blue_sky.bmp',byteFile,'seq')
+message = extractSteganoImage('blue_sky1.bmp','seq')
 
 
 
