@@ -33,14 +33,14 @@ def writeFile(fbyte, file_name=None):
   i = 0
   tmp = tmpFilename + '.' + tmpExtention
   while check:
-    if (not os.path.isfile(tmp)):
+    if (not os.path.isfile('result/' + tmp)):
       check = False
     else:
       i += 1
       tmp = tmpFilename + '(' + str(i) + ').' + tmpExtention
 
   fileName = tmp
-  binary_file = open(fileName, "wb")
+  binary_file = open('result/' + fileName, "wb")
   binary_file.write(byteFile)
   binary_file.close
 
