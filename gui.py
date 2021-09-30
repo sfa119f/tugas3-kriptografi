@@ -7,6 +7,7 @@ from tkinter.scrolledtext import ScrolledText
 from fileManagement import *
 from rc4Cipher import methodRc4
 from fileStorage import StorageFile
+from steganografiAudio import methodStegAudio
 
 fileRc4Storage = StorageFile()
 fileStegStorage = StorageFile()
@@ -125,7 +126,7 @@ def saveOutputRc4():
     res = "Input:\n" + inputRc4.get('1.0', 'end-1c') + '\nOutput:\n' + outputRc4.get('1.0', 'end-1c')
     fbyte = bytes(res, 'utf-8')
     fileName = writeFile(fbyte)
-    tkinter.messagebox.showinfo('Success', 'Success export result to: '+ fileName)
+    tkinter.messagebox.showinfo('Success', 'Success export result to: ./result/'+ fileName)
   except:
     tkinter.messagebox.showinfo('Error', 'Error when export result to file')
 
@@ -163,7 +164,7 @@ def processRc4():
           fileName = writeFile(result, file_name='resultEncryption.bin')
         else:
           fileName = writeFile(result)
-        tkinter.messagebox.showinfo('Success', 'Success export result to: '+ fileName)
+        tkinter.messagebox.showinfo('Success', 'Success export result to: ./result/'+ fileName)
         saveBtnRc4.config(state=DISABLED)
       else:
         result = methodRc4(keyRc4.get('1.0', 'end-1c'), inputRc4.get('1.0', 'end-1c'))
@@ -270,8 +271,15 @@ def importMediaSteg():
     else:
       tkinter.messagebox.showinfo('Error', 'Something went wrong when import file')
 
+def clearMedia():
+# Memghapus input media
+  labelStegMedia.config(text='')
+  mediaStegStorage.setFile(None)
+  mediaStegStorage.setFName(None)
+
 def showStegActType():
 # Setting steganografi form saat memilih menyembunyikan atau mengekstrak file
+  clearMedia()
   if stegAction.get() == 'hide':
     stegSeqRad.config(state=NORMAL)
     stegRandRad.config(state=NORMAL)
@@ -304,10 +312,8 @@ def stegReset():
   stegAction.set('hide')
   showStegActType()
   stegMediaType.set('image')
-  labelStegMedia.config(text='')
+  clearMedia()
   labelStegMsg.config(text='')
-  mediaStegStorage.setFile(None)
-  mediaStegStorage.setFName(None)
   fileStegStorage.setFile(None)
   fileStegStorage.setFName(None)
   paramAudioStegStorage.setFile(None)
@@ -317,32 +323,34 @@ def processSteg():
 # Pemrosesan untuk menyembunyikan atau mengekstrak file dengan LSB
   if stegEncryptMode.get() and keySteg.get('1.0', 'end-1c') == '':
     tkinter.messagebox.showinfo('Error', 'Key is empty')
-  elif mediaStegStorage.getFile() == '':
+  elif mediaStegStorage.getFile() == None:
     tkinter.messagebox.showinfo('Error', 'Multimedia file is not available')
-  elif stegAction.get() == 'hide' and fileStegStorage.get() == '':
+  elif stegAction.get() == 'hide' and fileStegStorage.getFile() == None:
     tkinter.messagebox.showinfo('Error', 'Message file is not available')
   else:
     try:
-      msg = fileStegStorage.get()
+      msg = fileStegStorage.getFile()
       if stegEncryptMode.get() and stegAction.get() == 'hide':
         msg = methodRc4(keySteg.get('1.0', 'end-1c'), msg, True)
       if stegMediaType.get() == 'image':
         # result, msgResult = methodStegImage(stegAction.get(), mediaStegStorage.getFile(), msg)
         # cv2.imwrite(mediaStegStorage.getFName(), result)
-        tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Image')
+        # tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Image')
+        raise Exception()
       else:
-        # result, msgResult = methodStegAudio(stegAction.get(), mediaStegStorage.getFile(), msg)
-        # song = wave.open(mediaStegStorage.getFName(), mode='wb')
-        # song.setparams(paramAudioStegStorage.getFile())
-        # song.writeframes(frame)
-        # song.close()
+        result, msgResult = methodStegAudio(stegAction.get(), stegActType.get(), mediaStegStorage.getFName(), mediaStegStorage.getFile(), msg)
         tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Audio')
+        if result != None:
+          song = wave.open('result/' + mediaStegStorage.getFName(), mode='wb')
+          song.setparams(paramAudioStegStorage.getFile())
+          song.writeframes(result)
+          song.close()
+          tkinter.messagebox.showinfo('Success', 'Result audio export to: ./result/' + mediaStegStorage.getFName())
       if stegEncryptMode.get() and stegAction.get() == 'extract':
         msgResult = methodRc4(keySteg.get('1.0', 'end-1c'), msgResult, True)
       if stegAction.get() == 'extract':
-        print('Write message to filebyte')
-        # fileName = writeFile(msgResult)
-        # tkinter.messagebox.showinfo('Success', 'Success export result message to: '+ fileName)
+        fileName = writeFile(msgResult)
+        tkinter.messagebox.showinfo('Success', 'Success export result message to: ./result/'+ fileName)
     except:
       tkinter.messagebox.showinfo('Error', 'Something went wrong when processing steganografi')
 
@@ -372,8 +380,8 @@ Label(steg, text='Multimedia File:').place(x=10, y=140)
 labelStegMedia = Label(steg, font=('Calibri', 10, 'underline'), fg='blue')
 labelStegMedia.place(x=100, y=140)
 stegMediaType = StringVar(steg, 'image')
-Radiobutton(steg, text='Image', variable=stegMediaType, value='image').place(x=10, y=160)
-Radiobutton(steg, text='Audio', variable=stegMediaType, value='audio').place(x=90, y=160)
+Radiobutton(steg, text='Image', variable=stegMediaType, value='image', command=clearMedia).place(x=10, y=160)
+Radiobutton(steg, text='Audio', variable=stegMediaType, value='audio', command=clearMedia).place(x=90, y=160)
 
 mediaSteg = Button(steg, text='Import File', command=importMediaSteg, bg='grey85', width=8)
 mediaSteg.place(x=180, y=160)
