@@ -1,21 +1,19 @@
 from fileManagement import *
 import random
-import cv2
 from math import log10, sqrt 
 import numpy as np
-from PIL import Image
 import tkinter.messagebox
 
 def convertMessage(message):
-    # konversi pesan menjadi array of bit
+    # Konversi pesan menjadi array of bit
     listByte = [val for val in message]
     bits = map(int, ''.join([bin(byte).lstrip('0b').rjust(8, '0') for byte in listByte]))
     arrayBit = list(bits)
     return arrayBit
 
 def modifyPixel(imgList, msgList, randomList):
-    # mengubah nilai pixel dengan menyisipkan bit-bit pesan pada LSB (Least Significant Byte)
-    # Modify frame
+    # Mengubah nilai pixel dengan menyisipkan bit-bit pesan pada LSB (Least Significant Byte)
+    # Modify pixel
     i = 0
     j = 0
     while j < len(msgList):
@@ -26,22 +24,20 @@ def modifyPixel(imgList, msgList, randomList):
             j += 1
         i += 1
     imgList[randomList[i]] = imgList[randomList[i]] & 254 | 1 # Sign if stop msg
-    print(i)
-    print(j == len(msgList))
     return imgList
 
 def constanta(img):
-    # membuat suatu nilai konstanta
+    # Membuat suatu nilai konstanta untuk penyisipan pesan secara acak
     return sum([ord(i) for i in img])
 
 def randomizeList(filenameImg, pixel):
-    # melakukan penyisipan bit pesan secara acak
+    # Melakukan penyisipan bit pesan secara acak
     random.seed(constanta(filenameImg))
     random.shuffle(pixel)
     return pixel
 
 def psnrImage(image,imageModified):
-    # mengukur kualitas gambar setelah penyisipan pesan
+    # Mengukur kualitas gambar setelah penyisipan pesan
     mse = np.mean((image - imageModified) ** 2)
     if mse == 0:
         return 100
@@ -50,14 +46,13 @@ def psnrImage(image,imageModified):
     return psnr
 
 def hideSteganoImage(filenameImg, msg, image, actType):
-    # melakukan penyisipan pesan pada gambar
+    # Melakukan penyisipan pesan pada gambar
         
-    # membaca file gambar dan mengubah menjadi array gambar 1 dimensi
+    # Membaca file gambar dan mengubah menjadi array gambar 1 dimensi
     arrImage = np.array(image)
     shapeImage = arrImage.shape
     pixelFlat = arrImage.ravel()
     message = convertMessage(msg)
-    print(pixelFlat[:20])
     if(len(message) > len(pixelFlat)): 
         error = "Message size exceeds payload capacity!"
         tkinter.messagebox.showerror("Error", error)
@@ -71,27 +66,21 @@ def hideSteganoImage(filenameImg, msg, image, actType):
     pixelList = list(range(1,len(pixelFlat)))
     if(actType == 'rand'):
         pixelList = randomizeList(filenameImg,pixelList)
-    
     pixelModified = modifyPixel(pixelFlat, message, pixelList)
-    print(pixelModified[:20])
     vectorImage = np.matrix(pixelModified)
     newPixel = np.asarray(vectorImage).reshape(shapeImage)
-    newImage = Image.fromarray(newPixel)
-    # print(newPixel)
-    # newImage = newImage.save('result/blue_sky.bmp')
-    return newImage
+    return newPixel
 
 def extractSteganoImage(filenameImg, image):
+    # Melakukan ekstraksi pesan dari stego image
     arrImage = np.array(image)
     pixelFlat = arrImage.ravel()
-
     randomList = list(range(1, len(pixelFlat)))
     if bin(pixelFlat[0])[-1] == '1': # isRandom
         random.seed(constanta('blue_sky.bmp'))
         random.shuffle(randomList)
-    print(randomList[:5])
 
-    # Extract to binary file
+    # Ekstraksi binary file
     extracted = [pixelFlat[i] & 1 for i in range(len(pixelFlat))]
     arrMsg = []
     bitMsg = ''
@@ -107,31 +96,14 @@ def extractSteganoImage(filenameImg, image):
             bitMsg = ''
         i += 1
     byteFile = bytes(arrMsg)
-    print(i)
     return byteFile    
 
 def methodStegImage(action, actType, filenameImg, image, file):
-# Fungsi utama steganografi
-# Output: frame audio dan byte file
-  if action == 'hide':
-    resPixel = hideSteganoImage(filenameImg, file, image, actType)
-    return resPixel, None
-  else:
-    byteFile = extractSteganoImage(filenameImg, image)
-    return None, byteFile 
-    
-# fullDirFile = 'C:/Users/faris/OneDrive/Documents/GitHub/tugas3-kriptografi/Tugas3-Sem1-2021-2022.pdf'
-# fileName, byteFile = readFile(fullDirFile, isMakeMark=True)
-# # pixel = hideSteganoImage('blue_sky.bmp',byteFile,'rand')
-# byte = extractSteganoImage('result/blue_sky.bmp')
-# writeFile(byte)
-
-
-
-
-    
-
-
-
-
-
+    # Fungsi utama steganografi
+    # Output: pixel image dan byte file
+    if action == 'hide':
+        resPixel = hideSteganoImage(filenameImg, file, image, actType)
+        return resPixel, None
+    else:
+        byteFile = extractSteganoImage(filenameImg, image)
+        return [], byteFile 
