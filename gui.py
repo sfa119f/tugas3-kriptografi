@@ -1,4 +1,3 @@
-import cv2
 import wave
 from tkinter import *
 import tkinter.messagebox
@@ -8,6 +7,8 @@ from fileManagement import *
 from rc4Cipher import methodRc4
 from fileStorage import StorageFile
 from steganografiAudio import methodStegAudio
+from steganoImage import methodStegImage
+from PIL import Image
 
 fileRc4Storage = StorageFile()
 fileStegStorage = StorageFile()
@@ -249,7 +250,7 @@ def importMediaSteg():
       if fullDirFile[fullDirFile.rindex('.')+1:].lower() != 'bmp' and fullDirFile[fullDirFile.rindex('.')+1:].lower() != 'png':
         raise Exception('Format Error', 'Just except format .bmp or .png')
       else:
-        img = cv2.imread(fullDirFile)
+        img = Image.open(fullDirFile, 'r')
         mediaStegStorage.setFile(img)
     else:
       if fullDirFile[fullDirFile.rindex('.')+1:].lower() != 'wav':
@@ -333,10 +334,10 @@ def processSteg():
       if stegEncryptMode.get() and stegAction.get() == 'hide':
         msg = methodRc4(keySteg.get('1.0', 'end-1c'), msg, True)
       if stegMediaType.get() == 'image':
-        # result, msgResult = methodStegImage(stegAction.get(), mediaStegStorage.getFile(), msg)
-        # cv2.imwrite(mediaStegStorage.getFName(), result)
-        # tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Image')
-        raise Exception()
+        result, msgResult = methodStegImage(stegAction.get(), stegActType.get(), mediaStegStorage.getFName(), mediaStegStorage.getFile(), msg)
+        if (result != None):
+          result.save('result/' + mediaStegStorage.getFName())
+          tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Image')
       else:
         result, msgResult = methodStegAudio(stegAction.get(), stegActType.get(), mediaStegStorage.getFName(), mediaStegStorage.getFile(), msg)
         tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Audio')

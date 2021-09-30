@@ -6,10 +6,6 @@ import numpy as np
 from PIL import Image
 import tkinter.messagebox
 
-def readImage(filename):
-  img = Image.open(filename, 'r')
-  return img
-
 def convertMessage(message):
     # konversi pesan menjadi array of bit
     listByte = [val for val in message]
@@ -53,11 +49,10 @@ def psnrImage(image,imageModified):
     psnr = 20 * log10(maxPixel / sqrt(mse))
     return psnr
 
-def hideSteganoImage(filenameImg, msg, actType):
+def hideSteganoImage(filenameImg, msg, image, actType):
     # melakukan penyisipan pesan pada gambar
         
     # membaca file gambar dan mengubah menjadi array gambar 1 dimensi
-    image = readImage(filenameImg)
     arrImage = np.array(image)
     shapeImage = arrImage.shape
     pixelFlat = arrImage.ravel()
@@ -83,11 +78,10 @@ def hideSteganoImage(filenameImg, msg, actType):
     newPixel = np.asarray(vectorImage).reshape(shapeImage)
     newImage = Image.fromarray(newPixel)
     # print(newPixel)
-    newImage = newImage.save('result/blue_sky.bmp')
-    return newPixel
+    # newImage = newImage.save('result/blue_sky.bmp')
+    return newImage
 
-def extractSteganoImage(filenameImg):
-    image = readImage(filenameImg)
+def extractSteganoImage(filenameImg, image):
     arrImage = np.array(image)
     pixelFlat = arrImage.ravel()
 
@@ -115,12 +109,22 @@ def extractSteganoImage(filenameImg):
     byteFile = bytes(arrMsg)
     print(i)
     return byteFile    
+
+def methodStegImage(action, actType, filenameImg, image, file):
+# Fungsi utama steganografi
+# Output: frame audio dan byte file
+  if action == 'hide':
+    resPixel = hideSteganoImage(filenameImg, file, image, actType)
+    return resPixel, None
+  else:
+    byteFile = extractSteganoImage(filenameImg, image)
+    return None, byteFile 
     
-fullDirFile = 'C:/Users/faris/OneDrive/Documents/GitHub/tugas3-kriptografi/Tugas3-Sem1-2021-2022.pdf'
-fileName, byteFile = readFile(fullDirFile, isMakeMark=True)
-# pixel = hideSteganoImage('blue_sky.bmp',byteFile,'rand')
-byte = extractSteganoImage('result/blue_sky.bmp')
-writeFile(byte)
+# fullDirFile = 'C:/Users/faris/OneDrive/Documents/GitHub/tugas3-kriptografi/Tugas3-Sem1-2021-2022.pdf'
+# fileName, byteFile = readFile(fullDirFile, isMakeMark=True)
+# # pixel = hideSteganoImage('blue_sky.bmp',byteFile,'rand')
+# byte = extractSteganoImage('result/blue_sky.bmp')
+# writeFile(byte)
 
 
 
