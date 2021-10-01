@@ -263,7 +263,6 @@ def importMediaSteg():
         params = song.getparams()
         song.close()
         mediaStegStorage.setFile(frameBytes)
-        print(params, 'PARAMS')
         paramAudioStegStorage.setFile(params)
         song = wave.open(fullDirFile, mode='rb')
         modifiedBuffAudio = song.readframes(-1)
