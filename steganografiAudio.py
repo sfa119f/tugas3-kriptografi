@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import random
 import tkinter.messagebox
 
@@ -78,3 +78,11 @@ def methodStegAudio(action, actType, audioname, frame, file):
   else:
     byteFile = extractAudio(audioname, frame)
     return None, byteFile
+
+def psnrAudio(audio, audioModified):
+  audioSize = len(audio)
+  mse = np.sum(pow(audio[i] - audioModified[i], 2)) for i in range(audioSize) / size
+  maxAudio = np.sum(pow(audioModified[i], 2) for i in range(audioSize)) / sizr
+  psnr = 10 * np.log10(maxAudio / mse)
+  
+  return psnr
