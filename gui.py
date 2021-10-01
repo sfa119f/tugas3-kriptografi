@@ -6,8 +6,8 @@ from tkinter.scrolledtext import ScrolledText
 from fileManagement import *
 from rc4Cipher import methodRc4
 from fileStorage import StorageFile
-from steganografiAudio import methodStegAudio
-from steganoImage import methodStegImage,psnrImage
+from steganografiAudio import methodStegAudio, fidelityAudio
+from steganoImage import methodStegImage, psnrImage
 from PIL import Image
 import numpy as np
 
@@ -15,6 +15,7 @@ fileRc4Storage = StorageFile()
 fileStegStorage = StorageFile()
 mediaStegStorage = StorageFile()
 paramAudioStegStorage = StorageFile()
+buffAudioStegStorage = StorageFile(bFile=[])
 
 def home_win():
 # Membuka windows home
@@ -262,7 +263,13 @@ def importMediaSteg():
         params = song.getparams()
         song.close()
         mediaStegStorage.setFile(frameBytes)
+        print(params, 'PARAMS')
         paramAudioStegStorage.setFile(params)
+        song = wave.open(fullDirFile, mode='rb')
+        modifiedBuffAudio = song.readframes(-1)
+        modifiedBuffAudio = [item + 0 for item in modifiedBuffAudio]
+        song.close()
+        buffAudioStegStorage.setFile(modifiedBuffAudio)
     mediaStegStorage.setFName(fileName)
     labelStegMedia.config(text=fileName)
     tkinter.messagebox.showinfo('Success', 'Success import: ' + fileName)
@@ -278,6 +285,10 @@ def clearMedia():
   labelStegMedia.config(text='')
   mediaStegStorage.setFile(None)
   mediaStegStorage.setFName(None)
+  paramAudioStegStorage.setFile(None)
+  paramAudioStegStorage.setFName(None)
+  buffAudioStegStorage.setFile([])
+  buffAudioStegStorage.setFName(None)
 
 def showStegActType():
 # Setting steganografi form saat memilih menyembunyikan atau mengekstrak file
@@ -318,8 +329,6 @@ def stegReset():
   labelStegMsg.config(text='')
   fileStegStorage.setFile(None)
   fileStegStorage.setFName(None)
-  paramAudioStegStorage.setFile(None)
-  paramAudioStegStorage.setFName(None)
 
 def processSteg():
 # Pemrosesan untuk menyembunyikan atau mengekstrak file dengan LSB
@@ -330,7 +339,7 @@ def processSteg():
   elif stegAction.get() == 'hide' and fileStegStorage.getFile() == None:
     tkinter.messagebox.showinfo('Error', 'Message file is not available')
   else:
-    try:
+    # try:
       msg = fileStegStorage.getFile()
       if stegEncryptMode.get() and stegAction.get() == 'hide':
         msg = methodRc4(keySteg.get('1.0', 'end-1c'), msg, True)
@@ -342,11 +351,11 @@ def processSteg():
           newImage.save('result/' + mediaStegStorage.getFName())
           tkinter.messagebox.showinfo('Success', 'Result image export to: ./result/' + mediaStegStorage.getFName())
           image = np.array(mediaStegStorage.getFile())
-          psnr = psnrImage(image, result)
-          if(psnr > 30):
-            tkinter.messagebox.showinfo('PSNR', 'PSNR is accepted, value: ' + '%.2f' % psnr)
+          imgPsnr = psnrImage(image, result)
+          if(imgPsnr > 30):
+            tkinter.messagebox.showinfo('PSNR', 'PSNR image is accepted, value: ' + '%.2f' % imgPsnr)
           else:
-            tkinter.messagebox.showinfo('PSNR', 'PSNR is not accepted, value: ' + '%.2f' % psnr)
+            tkinter.messagebox.showinfo('PSNR', 'PSNR image is not accepted, value: ' + '%.2f' % imgPsnr)
       else:
         result, msgResult = methodStegAudio(stegAction.get(), stegActType.get(), mediaStegStorage.getFName(), mediaStegStorage.getFile(), msg)
         tkinter.messagebox.showinfo('Success', 'Success Process Steganografi in Audio')
@@ -356,13 +365,22 @@ def processSteg():
           song.writeframes(result)
           song.close()
           tkinter.messagebox.showinfo('Success', 'Result audio export to: ./result/' + mediaStegStorage.getFName())
+          song = wave.open('result/' + mediaStegStorage.getFName(), mode='rb')
+          modifiedBuffAudio = song.readframes(-1)
+          modifiedBuffAudio = [item + 0 for item in modifiedBuffAudio]
+          song.close()
+          audioFidelity = fidelityAudio(buffAudioStegStorage.getFile(), modifiedBuffAudio)
+          if(audioFidelity > 30):
+            tkinter.messagebox.showinfo('Fidelity', 'Fidelity audio is accepted, value: ' + '%.2f' % audioFidelity)
+          else:
+            tkinter.messagebox.showinfo('Fidelity', 'Fidelity audio is not accepted, value: ' + '%.2f' % audioFidelity)
       if stegEncryptMode.get() and stegAction.get() == 'extract':
         msgResult = methodRc4(keySteg.get('1.0', 'end-1c'), msgResult, True)
       if stegAction.get() == 'extract':
         fileName = writeFile(msgResult)
         tkinter.messagebox.showinfo('Success', 'Success export result message to: ./result/'+ fileName)
-    except:
-      tkinter.messagebox.showinfo('Error', 'Something went wrong when processing steganografi')
+    # except:
+    #   tkinter.messagebox.showinfo('Error', 'Something went wrong when processing steganografi')
 
 # --- GUI Steganografi --- #
 steg = Toplevel(home)

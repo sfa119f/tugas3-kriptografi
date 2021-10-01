@@ -79,10 +79,11 @@ def methodStegAudio(action, actType, audioname, frame, file):
     byteFile = extractAudio(audioname, frame)
     return None, byteFile
 
-def psnrAudio(audio, audioModified):
+def fidelityAudio(audio, audioModified):
+# Mengukur kualitas audio setelah penyisipan pesan
   audioSize = len(audio)
-  mse = np.sum(pow(audio[i] - audioModified[i], 2)) for i in range(audioSize) / size
-  maxAudio = np.sum(pow(audioModified[i], 2) for i in range(audioSize)) / sizr
-  psnr = 10 * np.log10(maxAudio / mse)
+  mse = np.sum(pow(audio[i] - audioModified[i], 2) for i in range(audioSize)) / audioSize
+  maxAudio = np.sum(pow(audioModified[i], 2) for i in range(audioSize)) / audioSize
+  fidelity = 10 * np.log10(maxAudio / mse)
   
-  return psnr
+  return fidelity
